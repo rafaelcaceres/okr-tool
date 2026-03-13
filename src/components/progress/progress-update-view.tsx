@@ -301,14 +301,15 @@ function ObjectiveGroup({ objectiveId, currentDate, cycleStartDate, cycleEndDate
 
                   {/* Collapsible type displays */}
                   <div className="px-3 pb-2">
-                    {(hasStages || hasChecklist || hasWorkstreams) && (
+                    {/* Checklist gets its own collapsible; stages/workstreams are shown via PhasingChart */}
+                    {hasChecklist && (
                       <CollapsibleTypeDisplay
                         kr={kr}
                         krType={krType}
                         typeConfig={typeConfig}
-                        hasStages={hasStages}
+                        hasStages={false}
                         hasChecklist={hasChecklist}
-                        hasWorkstreams={hasWorkstreams}
+                        hasWorkstreams={false}
                       />
                     )}
                     <CollapsiblePhasingChart

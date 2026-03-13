@@ -68,6 +68,6 @@ describe("progressivePercentageStrategy", () => {
   it("has correct metadata", () => {
     expect(progressivePercentageStrategy.supportsPhasing).toBe(true);
     expect(progressivePercentageStrategy.supportsDirection).toBe(true);
-    expect(progressivePercentageStrategy.label).toBe("Percentual Progressivo");
+    expect(progressivePercentageStrategy.label).toBe("Cobertura Progressiva");
   });
 });

@@ -390,13 +390,16 @@ function KrCard({
 
       {/* ─── Collapsible details ─── */}
       <div className="px-3 pb-2">
-        <CollapsibleTypeDetail
-          kr={kr}
-          krType={krType}
-          hasStages={hasStages}
-          hasChecklist={hasChecklist}
-          hasWorkstreams={hasWorkstreams}
-        />
+        {/* Checklist gets its own collapsible; stages/workstreams are shown via PhasingChart */}
+        {hasChecklist && (
+          <CollapsibleTypeDetail
+            kr={kr}
+            krType={krType}
+            hasStages={false}
+            hasChecklist={hasChecklist}
+            hasWorkstreams={false}
+          />
+        )}
         {supportsPhasing && (
           <CollapsiblePhasingChart
             keyResult={kr}

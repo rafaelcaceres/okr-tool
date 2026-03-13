@@ -6,7 +6,7 @@ import {
 import type { ProgressivePercentageConfig, ValidationResult } from "../types";
 
 export const progressivePercentageStrategy: KrTypeStrategy = {
-  label: "Percentual Progressivo",
+  label: "Cobertura Progressiva",
   description:
     "Percentual com evolução progressiva e breakpoints não lineares (ex: adoção, cobertura)",
   supportsPhasing: true,

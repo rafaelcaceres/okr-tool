@@ -7,6 +7,13 @@ Guia para deploy automatizado com push para `main`.
 - [Node.js](https://nodejs.org/) instalado
 - [Homebrew](https://brew.sh/) (macOS)
 
+### Instalar CLIs necessárias
+
+```bash
+brew install gh
+npm i -g vercel
+```
+
 ### Autenticar
 
 ```bash

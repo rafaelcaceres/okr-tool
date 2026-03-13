@@ -93,6 +93,11 @@ export function TypeConfigSection({
     );
   }
 
+  // Stage-gate and multi-phase displays are handled by PhasingChart's timeline view
+  if (krType === "STAGE_GATE" || krType === "MULTI_PHASE_WITH_RISK") {
+    return null;
+  }
+
   const displayConfig = typeDef.getDisplayConfig(typeConfig);
 
   return (

@@ -77,7 +77,7 @@ export default defineSchema({
     // Legacy fields (kept for migration compatibility)
     measurementType: v.optional(measurementType),
     direction: v.optional(direction),
-    planningFrequency: v.optional(v.union(v.literal("MONTHLY"), v.literal("WEEKLY"))),
+    planningFrequency: v.optional(v.union(v.literal("MONTHLY"), v.literal("WEEKLY"), v.literal("QUARTERLY"))),
     currency: v.optional(v.string()),
     externalLink: v.optional(v.string()),
     hasProgress: v.boolean(),

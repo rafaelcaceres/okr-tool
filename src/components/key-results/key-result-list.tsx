@@ -449,15 +449,18 @@ export function KeyResultList({
 
             {/* ─── Collapsible type detail ─── */}
             <div className="px-3 pb-2">
-              <CollapsibleTypeDetail
-                kr={kr}
-                krType={krType}
-                hasStages={hasStages}
-                hasChecklist={hasChecklist}
-                hasWorkstreams={hasWorkstreams}
-              />
+              {/* Checklist gets its own collapsible; stages/workstreams are shown via PhasingChart */}
+              {hasChecklist && (
+                <CollapsibleTypeDetail
+                  kr={kr}
+                  krType={krType}
+                  hasStages={false}
+                  hasChecklist={hasChecklist}
+                  hasWorkstreams={false}
+                />
+              )}
 
-              {/* Phasing chart */}
+              {/* Phasing chart (also renders timeline view for stages/workstreams) */}
               {supportsPhasing && (
                 <CollapsibleChart
                   keyResult={kr}

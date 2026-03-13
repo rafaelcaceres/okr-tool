@@ -29,8 +29,10 @@ import {
   format,
   eachMonthOfInterval,
   eachWeekOfInterval,
+  eachQuarterOfInterval,
   endOfMonth,
   endOfWeek,
+  endOfQuarter,
   parseISO,
   subDays,
   isValid as isValidDate,
@@ -44,7 +46,7 @@ interface PhasingEditorProps {
   cycleEndDate: string;
 }
 
-type Frequency = "MONTHLY" | "WEEKLY";
+type Frequency = "MONTHLY" | "WEEKLY" | "QUARTERLY";
 
 // ─── Type-aware configuration ──────────────────────────────────────────────
 
@@ -195,7 +197,11 @@ function getCyclePeriods(startDate: string, endDate: string, frequency: Frequenc
 
   if (!isValidDate(start) || !isValidDate(end)) return [];
 
-  if (frequency === "MONTHLY") {
+  if (frequency === "QUARTERLY") {
+    return eachQuarterOfInterval({ start, end }).map((q) =>
+      format(endOfQuarter(q), "yyyy-MM-dd")
+    );
+  } else if (frequency === "MONTHLY") {
     return eachMonthOfInterval({ start, end }).map((m) =>
       format(endOfMonth(m), "yyyy-MM-dd")
     );
@@ -210,7 +216,10 @@ function formatPeriodLabel(dateStr: string, frequency: Frequency): string {
   const date = parseISO(dateStr);
   if (!isValidDate(date)) return dateStr;
 
-  if (frequency === "MONTHLY") {
+  if (frequency === "QUARTERLY") {
+    const q = Math.ceil((date.getMonth() + 1) / 3);
+    return `Q${q} ${format(date, "yyyy")}`;
+  } else if (frequency === "MONTHLY") {
     return format(date, "MMM yyyy", { locale: ptBR });
   } else {
     const start = subDays(date, 6);
@@ -554,6 +563,7 @@ export function PhasingEditor({
               <SelectContent>
                 <SelectItem value="MONTHLY">Mensal</SelectItem>
                 <SelectItem value="WEEKLY">Semanal</SelectItem>
+                <SelectItem value="QUARTERLY">Trimestral</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -594,13 +604,6 @@ export function PhasingEditor({
           ) : (
             /* Numeric mode: show period inputs */
             <div className="grid gap-3">
-              {isCumulative && (
-                <div className="flex items-center gap-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  <span className="w-32 text-right">Período</span>
-                  <span className="flex-1">Delta</span>
-                  <span className="w-24 text-right">Acumulado</span>
-                </div>
-              )}
               {periods.map((period) => (
                 <div key={period} className="flex items-center gap-3">
                   <Label className="w-32 text-sm capitalize shrink-0 text-right">
@@ -610,16 +613,22 @@ export function PhasingEditor({
                     type="number"
                     min={typeConfig.min}
                     max={typeConfig.max}
-                    step={typeConfig.step}
-                    value={values[period] ?? 0}
+                    step="any"
+                    value={values[period] ?? ""}
                     onChange={(e) => {
-                      let val = parseFloat(e.target.value) || 0;
+                      const raw = e.target.value;
+                      if (raw === "" || raw === "-") {
+                        setValues((prev) => ({ ...prev, [period]: 0 }));
+                        return;
+                      }
+                      let val = parseFloat(raw);
+                      if (isNaN(val)) val = 0;
                       val = Math.max(typeConfig.min, val);
                       if (typeConfig.max !== undefined) val = Math.min(typeConfig.max, val);
-                      if (typeConfig.step === "1") val = Math.round(val);
                       setValues((prev) => ({ ...prev, [period]: val }));
                     }}
                     className="flex-1 h-8 text-sm"
+                    placeholder={typeConfig.fieldLabel(period)}
                   />
                   {isCumulative && (
                     <span className="w-24 text-right text-sm text-muted-foreground tabular-nums">

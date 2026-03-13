@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Doc } from "../../../../convex/_generated/dataModel";
@@ -46,6 +46,7 @@ export function ChecklistConfigEditor({ keyResult }: ChecklistConfigEditorProps)
 
   const [categories, setCategories] = useState<ChecklistCategory[]>(config.categories);
   const [frequency, setFrequency] = useState<EvaluationFrequency>(config.evaluationFrequency);
+  const lastAddedItemRef = useRef<string | null>(null);
 
   const handleOpen = (isOpen: boolean) => {
     if (isOpen) {
@@ -79,6 +80,8 @@ export function ChecklistConfigEditor({ keyResult }: ChecklistConfigEditorProps)
   };
 
   const addItem = (categoryId: string) => {
+    const newId = crypto.randomUUID();
+    lastAddedItemRef.current = newId;
     setCategories(
       categories.map((c) =>
         c.id === categoryId
@@ -87,7 +90,7 @@ export function ChecklistConfigEditor({ keyResult }: ChecklistConfigEditorProps)
               items: [
                 ...c.items,
                 {
-                  id: crypto.randomUUID(),
+                  id: newId,
                   description: "",
                   compliant: false,
                 },
@@ -201,6 +204,14 @@ export function ChecklistConfigEditor({ keyResult }: ChecklistConfigEditorProps)
                 <Input
                   value={category.name}
                   onChange={(e) => updateCategoryName(category.id, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (category.items.length === 0) {
+                        addItem(category.id);
+                      }
+                    }
+                  }}
                   placeholder="Nome da categoria"
                   className="h-8 text-sm font-medium"
                 />
@@ -218,10 +229,22 @@ export function ChecklistConfigEditor({ keyResult }: ChecklistConfigEditorProps)
                 {category.items.map((item) => (
                   <div key={item.id} className="flex items-center gap-2">
                     <Input
+                      ref={(el) => {
+                        if (el && lastAddedItemRef.current === item.id) {
+                          el.focus();
+                          lastAddedItemRef.current = null;
+                        }
+                      }}
                       value={item.description}
                       onChange={(e) =>
                         updateItemDescription(category.id, item.id, e.target.value)
                       }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addItem(category.id);
+                        }
+                      }}
                       placeholder="Descrição do item"
                       className="h-7 text-sm"
                     />

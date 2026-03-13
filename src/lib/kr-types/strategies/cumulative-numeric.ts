@@ -6,7 +6,7 @@ import {
 import type { CumulativeNumericConfig, ValidationResult } from "../types";
 
 export const cumulativeNumericStrategy: KrTypeStrategy = {
-  label: "Numérico Cumulativo",
+  label: "KPI Cumulativo",
   description:
     "Acumula valor mês a mês com phasing cumulativo (ex: receita, leads, volume)",
   supportsPhasing: true,

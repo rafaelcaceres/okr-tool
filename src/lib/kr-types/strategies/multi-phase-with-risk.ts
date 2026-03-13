@@ -39,7 +39,7 @@ function calculateRiskCompliance(
 }
 
 export const multiPhaseWithRiskStrategy: KrTypeStrategy = {
-  label: "Multifase com Risco",
+  label: "Roadmap Multifase",
   description:
     "Roadmap com múltiplos workstreams e rastreamento de incidentes críticos (ex: governança, regulatório)",
   supportsPhasing: true,
@@ -155,9 +155,9 @@ export const multiPhaseWithRiskStrategy: KrTypeStrategy = {
         if (!ws.name || typeof ws.name !== "string") {
           errors.push("Cada workstream deve ter um nome.");
         }
-        if (typeof ws.weight !== "number" || ws.weight <= 0 || ws.weight > 1) {
+        if (typeof ws.weight !== "number" || ws.weight <= 0 || ws.weight > 100) {
           errors.push(
-            `Peso do workstream "${ws.name}" deve ser entre 0 e 1.`
+            `Peso do workstream "${ws.name}" deve ser entre 0 e 100.`
           );
         }
         totalWeight += ws.weight || 0;
@@ -167,8 +167,8 @@ export const multiPhaseWithRiskStrategy: KrTypeStrategy = {
           );
         }
       }
-      if (Math.abs(totalWeight - 1) > 0.01) {
-        errors.push("A soma dos pesos dos workstreams deve ser 1.");
+      if (Math.abs(totalWeight - 100) > 0.01) {
+        errors.push("A soma dos pesos dos workstreams deve ser 100%.");
       }
     }
 

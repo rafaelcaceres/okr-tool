@@ -140,6 +140,6 @@ describe("stageGateStrategy", () => {
   it("has correct metadata", () => {
     expect(stageGateStrategy.supportsPhasing).toBe(true);
     expect(stageGateStrategy.supportsDirection).toBe(false);
-    expect(stageGateStrategy.label).toBe("Portões de Estágio");
+    expect(stageGateStrategy.label).toBe("Milestones Sequenciais");
   });
 });

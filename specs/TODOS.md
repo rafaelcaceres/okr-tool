@@ -1,0 +1,2 @@
+- [ ] scroll dos modais nao esta funcionando
+- [ ] os numeros em planejar progresso estao com um zero que nao sai

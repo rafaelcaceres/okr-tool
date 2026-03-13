@@ -211,6 +211,6 @@ describe("cumulativeNumericStrategy", () => {
   it("has correct metadata", () => {
     expect(cumulativeNumericStrategy.supportsPhasing).toBe(true);
     expect(cumulativeNumericStrategy.supportsDirection).toBe(true);
-    expect(cumulativeNumericStrategy.label).toBe("Numérico Cumulativo");
+    expect(cumulativeNumericStrategy.label).toBe("KPI Cumulativo");
   });
 });

@@ -126,6 +126,6 @@ describe('KeyResultList', () => {
     render(<KeyResultList objectiveId={mockObjectiveId} />)
     expect(screen.getByText('Revenue target')).toBeInTheDocument()
     // FINANCIAL maps to CUMULATIVE_NUMERIC via resolveKrType
-    expect(screen.getByText(/Numérico Cumulativo/)).toBeInTheDocument()
+    expect(screen.getByText(/KPI Cumulativo/)).toBeInTheDocument()
   })
 })

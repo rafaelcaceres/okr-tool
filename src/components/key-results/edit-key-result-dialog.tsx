@@ -156,7 +156,8 @@ export function EditKeyResultDialog({ keyResult }: EditKeyResultDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
             <FormField
               control={form.control}
               name="title"
@@ -306,6 +307,7 @@ export function EditKeyResultDialog({ keyResult }: EditKeyResultDialogProps) {
               )}
             />
 
+            </div>
             <DialogFooter>
               <Button type="submit" className="bg-primary hover:bg-primary/90">Salvar</Button>
             </DialogFooter>

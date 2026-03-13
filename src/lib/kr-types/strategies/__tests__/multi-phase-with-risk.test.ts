@@ -12,7 +12,7 @@ function makeConfig(overrides?: Partial<MultiPhaseWithRiskConfig>): MultiPhaseWi
       {
         id: "ws-1",
         name: "Workstream 1",
-        weight: 0.6,
+        weight: 60,
         phases: [
           { id: "p1", name: "Impact Mapping", status: "COMPLETED", completedAt: 1000 },
           { id: "p2", name: "Policy Adjustment", status: "IN_PROGRESS" },
@@ -23,7 +23,7 @@ function makeConfig(overrides?: Partial<MultiPhaseWithRiskConfig>): MultiPhaseWi
       {
         id: "ws-2",
         name: "Workstream 2",
-        weight: 0.4,
+        weight: 40,
         phases: [
           { id: "p5", name: "Phase A", status: "COMPLETED", completedAt: 1000 },
           { id: "p6", name: "Phase B", status: "COMPLETED", completedAt: 2000 },
@@ -43,8 +43,8 @@ describe("multiPhaseWithRiskStrategy", () => {
     it("calculates weighted phase completion", () => {
       const config = makeConfig();
       const completion = calculatePhaseCompletion(config.workstreams);
-      // WS1: 1/4 * 0.6 = 0.15, WS2: 2/2 * 0.4 = 0.4
-      // Total weight: 1.0, weighted: (0.15 + 0.4) / 1.0 = 0.55
+      // WS1: 1/4 * 60 = 15, WS2: 2/2 * 40 = 40
+      // Total weight: 100, weighted: (15 + 40) / 100 = 0.55
       expect(completion).toBeCloseTo(0.55, 2);
     });
 
@@ -167,7 +167,7 @@ describe("multiPhaseWithRiskStrategy", () => {
           {
             id: "ws-1",
             name: "WS1",
-            weight: 1,
+            weight: 100,
             phases: [
               { id: "p1", name: "P1", status: "NOT_STARTED" },
               { id: "p2", name: "P2", status: "NOT_STARTED" },
@@ -192,7 +192,7 @@ describe("multiPhaseWithRiskStrategy", () => {
       ).toBe(true);
     });
 
-    it("rejects when weights don't sum to 1", () => {
+    it("rejects when phaseWeight + riskWeight don't sum to 1", () => {
       expect(
         multiPhaseWithRiskStrategy.validateConfig(
           makeConfig({ phaseWeight: 0.5, riskWeight: 0.3 })
@@ -220,6 +220,6 @@ describe("multiPhaseWithRiskStrategy", () => {
   it("has correct metadata", () => {
     expect(multiPhaseWithRiskStrategy.supportsPhasing).toBe(true);
     expect(multiPhaseWithRiskStrategy.supportsDirection).toBe(false);
-    expect(multiPhaseWithRiskStrategy.label).toBe("Multifase com Risco");
+    expect(multiPhaseWithRiskStrategy.label).toBe("Roadmap Multifase");
   });
 });

@@ -11,7 +11,7 @@ function countCompleted(stages: StageGateStage[]): number {
 }
 
 export const stageGateStrategy: KrTypeStrategy = {
-  label: "Portões de Estágio",
+  label: "Milestones Sequenciais",
   description:
     "Estágios sequenciais com dependências lógicas (ex: marcos de projeto, entregas)",
   supportsPhasing: true,

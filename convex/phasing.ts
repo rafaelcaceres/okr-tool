@@ -14,7 +14,7 @@ export const getPhasing = query({
 export const savePhasing = mutation({
   args: {
     keyResultId: v.id("keyResults"),
-    planningFrequency: v.optional(v.union(v.literal("MONTHLY"), v.literal("WEEKLY"))),
+    planningFrequency: v.optional(v.union(v.literal("MONTHLY"), v.literal("WEEKLY"), v.literal("QUARTERLY"))),
     entries: v.array(
       v.object({
         date: v.string(),
@@ -45,15 +45,18 @@ export const savePhasing = mutation({
       }
     }
 
-    // Validate sum equals target range
-    const expectedTotal = Math.abs(kr.targetValue - kr.initialValue);
-    const actualSum = args.entries.reduce((sum, e) => sum + e.plannedValue, 0);
+    // Validate sum equals target range (only for cumulative phasing modes)
+    const cumulativeTypes = ["CUMULATIVE_NUMERIC", "PROGRESSIVE_PERCENTAGE"];
+    if (!kr.krType || cumulativeTypes.includes(kr.krType)) {
+      const expectedTotal = Math.abs(kr.targetValue - kr.initialValue);
+      const actualSum = args.entries.reduce((sum, e) => sum + e.plannedValue, 0);
 
-    // Use small epsilon for float comparison
-    if (Math.abs(actualSum - expectedTotal) > 0.01) {
-      throw new Error(
-        `A soma das metas (${actualSum}) deve ser igual à meta total do KR (${expectedTotal}).`
-      );
+      // Use small epsilon for float comparison
+      if (Math.abs(actualSum - expectedTotal) > 0.01) {
+        throw new Error(
+          `A soma das metas (${actualSum}) deve ser igual à meta total do KR (${expectedTotal}).`
+        );
+      }
     }
 
     // Delete existing phasing entries

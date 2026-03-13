@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Doc } from "../../../../convex/_generated/dataModel";
@@ -49,6 +49,7 @@ export function MultiPhaseConfigEditor({ keyResult }: MultiPhaseConfigEditorProp
   const [workstreams, setWorkstreams] = useState<Workstream[]>(config.workstreams);
   const [phaseWeight, setPhaseWeight] = useState(config.phaseWeight);
   const [maxTolerable, setMaxTolerable] = useState(config.maxTolerableIncidents);
+  const lastAddedPhaseRef = useRef<string | null>(null);
 
   const handleOpen = (isOpen: boolean) => {
     if (isOpen) {
@@ -85,6 +86,8 @@ export function MultiPhaseConfigEditor({ keyResult }: MultiPhaseConfigEditorProp
   };
 
   const addPhase = (workstreamId: string) => {
+    const newId = crypto.randomUUID();
+    lastAddedPhaseRef.current = newId;
     setWorkstreams(
       workstreams.map((ws) =>
         ws.id === workstreamId
@@ -93,7 +96,7 @@ export function MultiPhaseConfigEditor({ keyResult }: MultiPhaseConfigEditorProp
               phases: [
                 ...ws.phases,
                 {
-                  id: crypto.randomUUID(),
+                  id: newId,
                   name: "",
                   status: "NOT_STARTED" as const,
                 },
@@ -149,8 +152,8 @@ export function MultiPhaseConfigEditor({ keyResult }: MultiPhaseConfigEditorProp
     }
 
     const totalWeight = validWorkstreams.reduce((sum, ws) => sum + ws.weight, 0);
-    if (Math.abs(totalWeight - 1) > 0.01) {
-      toast.error("A soma dos pesos dos workstreams deve ser 1.0.");
+    if (Math.abs(totalWeight - 100) > 0.01) {
+      toast.error("A soma dos pesos dos workstreams deve ser 100%.");
       return;
     }
 
@@ -233,6 +236,14 @@ export function MultiPhaseConfigEditor({ keyResult }: MultiPhaseConfigEditorProp
                 <Input
                   value={ws.name}
                   onChange={(e) => updateWorkstreamName(ws.id, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (ws.phases.length === 0) {
+                        addPhase(ws.id);
+                      }
+                    }
+                  }}
                   placeholder="Nome do workstream"
                   className="h-8 text-sm font-medium flex-1"
                 />
@@ -241,8 +252,8 @@ export function MultiPhaseConfigEditor({ keyResult }: MultiPhaseConfigEditorProp
                   <Input
                     type="number"
                     min={0}
-                    max={1}
-                    step={0.1}
+                    max={100}
+                    step={10}
                     value={ws.weight}
                     onChange={(e) => updateWorkstreamWeight(ws.id, Number(e.target.value))}
                     className="h-8 w-20 text-sm"
@@ -262,8 +273,20 @@ export function MultiPhaseConfigEditor({ keyResult }: MultiPhaseConfigEditorProp
                 {ws.phases.map((phase: WorkstreamPhase) => (
                   <div key={phase.id} className="flex items-center gap-2">
                     <Input
+                      ref={(el) => {
+                        if (el && lastAddedPhaseRef.current === phase.id) {
+                          el.focus();
+                          lastAddedPhaseRef.current = null;
+                        }
+                      }}
                       value={phase.name}
                       onChange={(e) => updatePhaseName(ws.id, phase.id, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addPhase(ws.id);
+                        }
+                      }}
                       placeholder="Nome da fase"
                       className="h-7 text-sm"
                     />
