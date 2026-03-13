@@ -292,6 +292,223 @@ function buildProgressTimeline(
   return timeline;
 }
 
+// --- Types for C-Level Dashboard ---
+type TrendDirection = "UP" | "DOWN" | "STABLE";
+
+type CLevelInsight =
+  | { type: "alert"; text: string }
+  | { type: "highlight"; text: string }
+  | { type: "info"; text: string };
+
+interface FranchiseCLevelSummary {
+  _id: string;
+  name: string;
+  objectiveCount: number;
+  krCount: number;
+  avgProgress: number;
+  healthCounts: Record<HealthStatus, number>;
+  predominantHealth: HealthStatus;
+  progressDelta: number;
+  trend: TrendDirection;
+}
+
+// --- C-Level Dashboard query ---
+export const getCLevelDashboard = query({
+  args: {
+    cycleId: v.id("cycles"),
+    currentDate: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const cycle = await ctx.db.get(args.cycleId);
+    if (!cycle) throw new Error("Ciclo não encontrado.");
+
+    const franchises = await ctx.db.query("franchises").collect();
+
+    const globalHealth: Record<HealthStatus, number> = {
+      ON_TRACK: 0, AT_RISK: 0, LATE: 0, NOT_STARTED: 0, COMPLETED: 0,
+    };
+    let globalTotalKRs = 0;
+    let globalTotalObjectives = 0;
+
+    const franchiseSummaries: FranchiseCLevelSummary[] = await Promise.all(
+      franchises.map(async (franchise) => {
+        const objectives = await ctx.db
+          .query("objectives")
+          .withIndex("by_franchise_cycle", (q) =>
+            q.eq("franchiseId", franchise._id).eq("cycleId", args.cycleId)
+          )
+          .collect();
+
+        globalTotalObjectives += objectives.length;
+
+        const healthCounts: Record<HealthStatus, number> = {
+          ON_TRACK: 0, AT_RISK: 0, LATE: 0, NOT_STARTED: 0, COMPLETED: 0,
+        };
+
+        // Collect KRs with phasing+progress for timeline computation
+        const objectivesWithKRs = await Promise.all(
+          objectives.map(async (obj) => {
+            const krs = await ctx.db
+              .query("keyResults")
+              .withIndex("by_objective", (q) => q.eq("objectiveId", obj._id))
+              .collect();
+
+            const krsWithData = await Promise.all(
+              krs.map(async (kr) => {
+                const phasing = await ctx.db
+                  .query("phasing")
+                  .withIndex("by_keyResult", (q) => q.eq("keyResultId", kr._id))
+                  .collect();
+
+                const progressEntries = await ctx.db
+                  .query("progressEntries")
+                  .withIndex("by_keyResult", (q) => q.eq("keyResultId", kr._id))
+                  .collect();
+
+                const health = computeKrHealth(kr, phasing, args.currentDate);
+                healthCounts[health]++;
+                globalHealth[health]++;
+                globalTotalKRs++;
+
+                return {
+                  initialValue: kr.initialValue,
+                  currentValue: kr.currentValue,
+                  targetValue: kr.targetValue,
+                  direction: kr.direction,
+                  phasing,
+                  progressEntries,
+                };
+              })
+            );
+
+            return { keyResults: krsWithData };
+          })
+        );
+
+        const avgProgress =
+          objectives.length > 0
+            ? Math.round(
+              objectives.reduce((s, o) => s + o.progress, 0) /
+              objectives.length
+            )
+            : 0;
+
+        const predominant = (Object.entries(healthCounts) as [HealthStatus, number][])
+          .sort((a, b) => b[1] - a[1])[0]?.[0] ?? "NOT_STARTED";
+
+        // Compute trend from timeline
+        const timeline = buildProgressTimeline(
+          objectivesWithKRs,
+          cycle.startDate,
+          cycle.endDate
+        );
+
+        // Find current and previous month progress
+        const currentMonth = args.currentDate.slice(0, 7); // YYYY-MM
+        const currentIdx = timeline.findIndex((t) => t.month === currentMonth);
+        const currentMonthProgress = currentIdx >= 0 ? timeline[currentIdx].actual : avgProgress;
+        const previousMonthProgress =
+          currentIdx > 0 ? timeline[currentIdx - 1].actual : 0;
+        const progressDelta = currentMonthProgress - previousMonthProgress;
+        const trend: TrendDirection =
+          progressDelta > 1 ? "UP" : progressDelta < -1 ? "DOWN" : "STABLE";
+
+        return {
+          _id: franchise._id,
+          name: franchise.name,
+          objectiveCount: objectives.length,
+          krCount: healthCounts.ON_TRACK + healthCounts.AT_RISK + healthCounts.LATE + healthCounts.NOT_STARTED + healthCounts.COMPLETED,
+          avgProgress,
+          healthCounts,
+          predominantHealth: predominant as HealthStatus,
+          progressDelta,
+          trend,
+        };
+      })
+    );
+
+    // Sort by avgProgress desc
+    franchiseSummaries.sort((a, b) => b.avgProgress - a.avgProgress);
+
+    // Global progress
+    const franchisesWithData = franchiseSummaries.filter((f) => f.krCount > 0);
+    const globalProgress =
+      franchisesWithData.length > 0
+        ? Math.round(
+          franchisesWithData.reduce((s, f) => s + f.avgProgress, 0) /
+          franchisesWithData.length
+        )
+        : 0;
+
+    // Generate insights
+    const insights = generateInsights(
+      franchiseSummaries,
+      globalHealth,
+      globalTotalKRs
+    );
+
+    return {
+      cycle,
+      globalProgress,
+      globalTotalObjectives,
+      globalTotalKRs,
+      globalHealth,
+      franchises: franchiseSummaries,
+      insights,
+    };
+  },
+});
+
+// --- Smart insights generator ---
+function generateInsights(
+  franchises: FranchiseCLevelSummary[],
+  globalHealth: Record<HealthStatus, number>,
+  totalKRs: number
+): CLevelInsight[] {
+  const insights: CLevelInsight[] = [];
+  if (franchises.length === 0 || totalKRs === 0) return insights;
+
+  // Alert: franchises at risk or late
+  const atRiskFranchises = franchises.filter(
+    (f) => f.predominantHealth === "LATE" || f.predominantHealth === "AT_RISK"
+  );
+  if (atRiskFranchises.length > 0) {
+    insights.push({
+      type: "alert",
+      text: `${atRiskFranchises.length} franquia${atRiskFranchises.length > 1 ? "s" : ""} em risco ou atrasada${atRiskFranchises.length > 1 ? "s" : ""}`,
+    });
+  }
+
+  // Highlight: top franchise
+  const top = franchises.find((f) => f.krCount > 0);
+  if (top && top.avgProgress > 0) {
+    insights.push({
+      type: "highlight",
+      text: `${top.name} lidera com ${top.avgProgress}% de progresso`,
+    });
+  }
+
+  // Alert: bottom franchise needs attention
+  const withData = franchises.filter((f) => f.krCount > 0);
+  const bottom = withData[withData.length - 1];
+  if (bottom && bottom !== top && bottom.avgProgress < 50) {
+    insights.push({
+      type: "alert",
+      text: `${bottom.name} precisa de atenção — ${bottom.avgProgress}% de progresso`,
+    });
+  }
+
+  // Info: global health percentage
+  const onTrackOrCompleted = globalHealth.ON_TRACK + globalHealth.COMPLETED;
+  const pct = Math.round((onTrackOrCompleted / totalKRs) * 100);
+  insights.push({
+    type: "info",
+    text: `${pct}% dos KRs estão em dia ou concluídos`,
+  });
+
+  return insights;
+}
+
 // --- Dashboard query for reports index page ---
 export const getReportsDashboard = query({
   args: {

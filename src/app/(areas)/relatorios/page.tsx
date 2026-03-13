@@ -11,7 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { BarChart3, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BarChart3, Filter, LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { ReportsDashboard } from "@/components/reports/reports-dashboard";
@@ -53,7 +55,14 @@ export default function RelatoriosPage() {
             Visão geral de performance e relatórios detalhados por franquia.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-card border rounded-md p-1 shadow-sm">
+        <div className="flex items-center gap-3">
+          <Link href="/relatorios/c-level">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <LayoutDashboard className="h-4 w-4" />
+              Painel Executivo
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2 bg-card border rounded-md p-1 shadow-sm">
           <div className="px-2 text-muted-foreground">
             <Filter className="h-4 w-4" />
           </div>
@@ -73,6 +82,7 @@ export default function RelatoriosPage() {
               ))}
             </SelectContent>
           </Select>
+          </div>
         </div>
       </div>
 

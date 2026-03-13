@@ -294,7 +294,54 @@ O OKR Tool é uma aplicação para gestão de Objetivos e Key Results com Next.j
 
 ---
 
-## Fase 7: Relatórios — Exportação PDF ⭐
+## Fase 7: Relatórios — Dashboard C-Level ⭐
+
+**Objetivo:** Visão consolidada executiva de todas as franquias.
+
+### UX
+- Grid de cards de franquia: nome, progresso consolidado (número grande), indicador de saúde, mini progress bar
+- Barra de resumo no topo: total de franquias, contagem por saúde (X verdes, Y amarelos, Z vermelhos)
+- Filtro de período (seletor de ciclo)
+- Click no card → navega para relatório da franquia (Fase 6)
+
+### Arquivos novos
+- `src/app/(areas)/relatorios/c-level/page.tsx`
+- `src/components/reports/c-level-dashboard.tsx`
+- `src/components/reports/franchise-summary-card.tsx`
+- `src/components/reports/c-level-header.tsx`
+- Adicionar `getConsolidatedDashboard` em `convex/reports.ts`
+
+**Tamanho: M** | Depende de: Fase 6
+
+---
+
+
+## Fase 9: Relatórios — Modo Apresentação ⭐
+
+**Objetivo:** Visualização fullscreen focada em gráficos para reuniões.
+
+### UX
+- Fullscreen com fundo escuro, alto contraste (otimizado para projetores)
+- Cada "slide" = 1 objetivo com seus KRs e gráficos grandes
+- Navegação: setas (teclado ou botões) entre objetivos
+- Breadcrumb: `Franquia > Objetivo N de M`
+- ESC para sair
+- Rota dedicada: `/relatorios/[franchiseId]/apresentacao`
+- Sem controles de edição, sem sidebar, sem header — só conteúdo
+- Transições suaves entre slides (CSS fade)
+
+### Arquivos novos
+- `src/app/(areas)/relatorios/[franchiseId]/apresentacao/page.tsx`
+- `src/components/reports/presentation/presentation-mode.tsx`
+- `src/components/reports/presentation/presentation-slide.tsx`
+- `src/components/reports/presentation/presentation-nav.tsx`
+- `src/components/reports/presentation/presentation-kr-chart.tsx`
+
+**Tamanho: M** | Depende de: Fase 6
+
+--
+
+## Fase 8: Relatórios — Exportação PDF ⭐
 
 **Objetivo:** PDF profissional com fidelidade visual.
 
@@ -319,52 +366,6 @@ O OKR Tool é uma aplicação para gestão de Objetivos e Key Results com Next.j
 - `src/lib/chart-to-svg.ts`
 
 ### Dependência nova: `@react-pdf/renderer`
-
-**Tamanho: M** | Depende de: Fase 6
-
----
-
-## Fase 8: Relatórios — Dashboard C-Level ⭐
-
-**Objetivo:** Visão consolidada executiva de todas as franquias.
-
-### UX
-- Grid de cards de franquia: nome, progresso consolidado (número grande), indicador de saúde, mini progress bar
-- Barra de resumo no topo: total de franquias, contagem por saúde (X verdes, Y amarelos, Z vermelhos)
-- Filtro de período (seletor de ciclo)
-- Click no card → navega para relatório da franquia (Fase 6)
-
-### Arquivos novos
-- `src/app/(areas)/relatorios/c-level/page.tsx`
-- `src/components/reports/c-level-dashboard.tsx`
-- `src/components/reports/franchise-summary-card.tsx`
-- `src/components/reports/c-level-header.tsx`
-- Adicionar `getConsolidatedDashboard` em `convex/reports.ts`
-
-**Tamanho: M** | Depende de: Fase 6
-
----
-
-## Fase 9: Relatórios — Modo Apresentação ⭐
-
-**Objetivo:** Visualização fullscreen focada em gráficos para reuniões.
-
-### UX
-- Fullscreen com fundo escuro, alto contraste (otimizado para projetores)
-- Cada "slide" = 1 objetivo com seus KRs e gráficos grandes
-- Navegação: setas (teclado ou botões) entre objetivos
-- Breadcrumb: `Franquia > Objetivo N de M`
-- ESC para sair
-- Rota dedicada: `/relatorios/[franchiseId]/apresentacao`
-- Sem controles de edição, sem sidebar, sem header — só conteúdo
-- Transições suaves entre slides (CSS fade)
-
-### Arquivos novos
-- `src/app/(areas)/relatorios/[franchiseId]/apresentacao/page.tsx`
-- `src/components/reports/presentation/presentation-mode.tsx`
-- `src/components/reports/presentation/presentation-slide.tsx`
-- `src/components/reports/presentation/presentation-nav.tsx`
-- `src/components/reports/presentation/presentation-kr-chart.tsx`
 
 **Tamanho: M** | Depende de: Fase 6
 
