@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import { useChartColors } from "@/lib/use-chart-colors";
 import { AlertTriangle, Target, KeyRound } from "lucide-react";
 import {
+  RadialBarChart,
+  RadialBar,
+  PolarAngleAxis,
   PieChart,
   Pie,
   Cell,
@@ -44,12 +47,7 @@ export function CLevelHeroKPIs({
 }: CLevelHeroKPIsProps) {
   const colors = useChartColors();
 
-  // SVG circle gauge params
-  const gaugeSize = 140;
-  const strokeWidth = 14;
-  const radius = (gaugeSize - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const progressOffset = circumference - (Math.min(globalProgress, 100) / 100) * circumference;
+  const gaugeData = [{ value: globalProgress, fill: colors.primary }];
 
   const onTrackCount = globalHealth.ON_TRACK + globalHealth.COMPLETED;
   const alertCount = globalHealth.AT_RISK + globalHealth.LATE;
@@ -81,35 +79,32 @@ export function CLevelHeroKPIs({
           <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
             Progresso Global
           </span>
-          <div className="relative" style={{ width: gaugeSize, height: gaugeSize }}>
-            <svg
-              width={gaugeSize}
-              height={gaugeSize}
-              className="-rotate-90"
-            >
-              {/* Background track */}
-              <circle
-                cx={gaugeSize / 2}
-                cy={gaugeSize / 2}
-                r={radius}
-                fill="none"
-                stroke={colors.muted}
-                strokeWidth={strokeWidth}
-              />
-              {/* Progress arc */}
-              <circle
-                cx={gaugeSize / 2}
-                cy={gaugeSize / 2}
-                r={radius}
-                fill="none"
-                stroke={colors.primary}
-                strokeWidth={strokeWidth}
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={progressOffset}
-                className="transition-all duration-700 ease-out"
-              />
-            </svg>
+          <div className="w-36 h-36 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart
+                cx="50%"
+                cy="50%"
+                innerRadius="70%"
+                outerRadius="100%"
+                startAngle={90}
+                endAngle={-270}
+                data={gaugeData}
+                barSize={16}
+              >
+                <PolarAngleAxis
+                  type="number"
+                  domain={[0, 100]}
+                  angleAxisId={0}
+                  tick={false}
+                />
+                <RadialBar
+                  dataKey="value"
+                  background={{ fill: colors.muted }}
+                  cornerRadius={8}
+                  angleAxisId={0}
+                />
+              </RadialBarChart>
+            </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-5xl font-extrabold text-foreground tabular-nums leading-none">
                 {globalProgress}

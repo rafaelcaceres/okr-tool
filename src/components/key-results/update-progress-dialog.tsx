@@ -177,12 +177,12 @@ export function UpdateProgressDialog({ keyResult }: UpdateProgressDialogProps) {
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-          title="Atualizar progresso"
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1.5 text-xs font-medium text-primary border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50"
         >
-          <TrendingUp className="h-4 w-4" />
+          <TrendingUp className="h-3.5 w-3.5" />
+          Atualizar
         </Button>
       </DialogTrigger>
       <DialogContent className={isStructuredType ? "sm:max-w-[600px]" : "sm:max-w-[425px]"}>

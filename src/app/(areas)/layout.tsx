@@ -20,9 +20,15 @@ const planejamentoSubNav = [
   { href: "/planejamento/membros", label: "Membros" },
 ];
 
+const relatoriosSubNav = [
+  { href: "/relatorios", label: "Visão Geral", exact: true },
+  { href: "/relatorios/c-level", label: "Painel Executivo" },
+];
+
 export default function AreasLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isPlanejamento = pathname.startsWith("/planejamento");
+  const isRelatorios = pathname.startsWith("/relatorios");
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background">
@@ -56,13 +62,15 @@ export default function AreasLayout({ children }: { children: ReactNode }) {
           </div>
           <ModeToggle />
         </div>
-        {isPlanejamento && (
+        {(isPlanejamento || isRelatorios) && (
           <div className="border-t border-gray-100 dark:border-border/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <nav className="flex items-center gap-2 h-11">
-                {planejamentoSubNav.map((item) => {
+                {(isPlanejamento ? planejamentoSubNav : relatoriosSubNav).map((item) => {
                   const isActive = item.exact
-                    ? pathname === item.href || pathname.startsWith("/planejamento/objetivos")
+                    ? isPlanejamento
+                      ? pathname === item.href || pathname.startsWith("/planejamento/objetivos")
+                      : pathname === item.href
                     : pathname.startsWith(item.href);
                   return (
                     <Link

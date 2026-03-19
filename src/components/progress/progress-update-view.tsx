@@ -259,9 +259,16 @@ function ObjectiveGroup({ objectiveId, currentDate, cycleStartDate, cycleEndDate
                       <p className="text-sm font-medium leading-snug text-foreground flex-1 min-w-0 line-clamp-2">
                         {kr.title}
                       </p>
-                      <div className="shrink-0 -mt-0.5">
-                        <UpdateProgressDialog keyResult={kr} />
-                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="px-3 pb-2">
+                    <div className="h-1 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${healthColor}`}
+                        style={{ width: `${Math.min(Number(((kr.currentValue / (kr.targetValue || 1)) * 100).toFixed(0)), 100)}%` }}
+                      />
                     </div>
                   </div>
 
@@ -287,16 +294,7 @@ function ObjectiveGroup({ objectiveId, currentDate, cycleStartDate, cycleEndDate
                     {kr.responsibles && (kr.responsibles as string[]).length > 0 && (
                       <ResponsibleNames ids={kr.responsibles as string[]} />
                     )}
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="px-3 pb-2.5">
-                    <div className="h-1 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${healthColor}`}
-                        style={{ width: `${Math.min(Number(((kr.currentValue / (kr.targetValue || 1)) * 100).toFixed(0)), 100)}%` }}
-                      />
-                    </div>
+                    <UpdateProgressDialog keyResult={kr} />
                   </div>
 
                   {/* Collapsible type displays */}
