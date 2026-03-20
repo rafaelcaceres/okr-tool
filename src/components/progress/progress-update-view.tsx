@@ -31,7 +31,8 @@ import type {
   CriticalIncident,
 } from "@/lib/kr-types/types";
 import { PhasingChart } from "@/components/phasing/phasing-chart";
-import { ChevronDown, ChevronRight, Filter, User } from "lucide-react";
+import { KrResponsibleAvatars } from "@/components/key-results/kr-responsible-avatars";
+import { ChevronDown, ChevronRight, Filter } from "lucide-react";
 import { useState } from "react";
 
 function resolveKrType(kr: Doc<"keyResults">): KrType {
@@ -106,21 +107,6 @@ function CollapsiblePhasingChart({
         />
       )}
     </div>
-  );
-}
-
-function ResponsibleNames({ ids }: { ids: string[] }) {
-  const members = useQuery(api.members.getMembers);
-  if (!members) return null;
-  const names = ids
-    .map((id) => members.find((m) => m._id === id)?.name)
-    .filter(Boolean);
-  if (names.length === 0) return null;
-  return (
-    <span className="text-xs text-muted-foreground flex items-center gap-1">
-      <User className="h-3 w-3" />
-      {names.join(", ")}
-    </span>
   );
 }
 
@@ -250,30 +236,43 @@ function ObjectiveGroup({ objectiveId, currentDate, cycleStartDate, cycleEndDate
                 krType === "MULTI_PHASE_WITH_RISK" &&
                 ((typeConfig as { workstreams?: Workstream[] })?.workstreams?.length ?? 0) > 0;
 
+              const progress = kr.targetValue
+                ? Math.min(Number(((kr.currentValue / kr.targetValue) * 100).toFixed(0)), 100)
+                : 0;
+
               return (
                 <div key={kr._id} className="bg-card rounded-lg border border-border/80 group hover:border-border transition-colors">
-                  {/* Title row */}
-                  <div className="px-3 pt-3 pb-1.5">
+                  {/* ─── Row 1: Title + Avatars + Action ─── */}
+                  <div className="px-3 pt-3 pb-2">
                     <div className="flex items-start gap-2">
                       <div className={`w-1.5 h-1.5 rounded-full shrink-0 mt-[5px] ${healthColor}`} />
+
                       <p className="text-sm font-medium leading-snug text-foreground flex-1 min-w-0 line-clamp-2">
                         {kr.title}
                       </p>
+
+                      <div className="shrink-0 flex items-center gap-1.5 -mt-0.5">
+                        <KrResponsibleAvatars responsibles={kr.resolvedResponsibles} />
+                        <UpdateProgressDialog keyResult={kr} />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Progress bar */}
-                  <div className="px-3 pb-2">
-                    <div className="h-1 bg-muted rounded-full overflow-hidden">
+                  {/* ─── Row 2: Progress bar + percentage ─── */}
+                  <div className="px-3 pb-2 flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${healthColor}`}
-                        style={{ width: `${Math.min(Number(((kr.currentValue / (kr.targetValue || 1)) * 100).toFixed(0)), 100)}%` }}
+                        style={{ width: `${progress}%` }}
                       />
                     </div>
+                    <span className="text-xs font-semibold text-foreground tabular-nums shrink-0 w-8 text-right">
+                      {progress}%
+                    </span>
                   </div>
 
-                  {/* Metrics row */}
-                  <div className="px-3 pb-2 flex items-center gap-2">
+                  {/* ─── Row 3: Metadata (subdued) ─── */}
+                  <div className="px-3 pb-2.5 flex items-center gap-2">
                     <Badge
                       variant="outline"
                       className="text-[10px] px-1 py-0 h-4 leading-none font-normal text-muted-foreground shrink-0"
@@ -291,15 +290,10 @@ function ObjectiveGroup({ objectiveId, currentDate, cycleStartDate, cycleEndDate
                         maxTolerableIncidents={(typeConfig as { maxTolerableIncidents?: number }).maxTolerableIncidents ?? 0}
                       />
                     )}
-                    {kr.responsibles && (kr.responsibles as string[]).length > 0 && (
-                      <ResponsibleNames ids={kr.responsibles as string[]} />
-                    )}
-                    <UpdateProgressDialog keyResult={kr} />
                   </div>
 
                   {/* Collapsible type displays */}
                   <div className="px-3 pb-2">
-                    {/* Checklist gets its own collapsible; stages/workstreams are shown via PhasingChart */}
                     {hasChecklist && (
                       <CollapsibleTypeDisplay
                         kr={kr}

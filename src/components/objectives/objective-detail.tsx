@@ -48,10 +48,10 @@ import {
   ArrowLeft,
   Trash2,
   ExternalLink,
-  User,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import { KrResponsibleAvatars } from "../key-results/kr-responsible-avatars";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -116,23 +116,6 @@ function getProgressPercent(kr: Doc<"keyResults">): number {
       targetValue: kr.targetValue,
       typeConfig,
     })
-  );
-}
-
-function ResponsiblesBadges({ responsibles }: { responsibles?: string[] }) {
-  const members = useQuery(api.members.getMembers);
-  if (!responsibles || responsibles.length === 0 || !members) return null;
-
-  const names = responsibles
-    .map((id) => members.find((m) => m._id === id)?.name)
-    .filter(Boolean);
-  if (names.length === 0) return null;
-
-  return (
-    <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-      <User className="h-2.5 w-2.5" />
-      {names.join(", ")}
-    </span>
   );
 }
 
@@ -225,7 +208,7 @@ function KrCard({
   canShowPhasing,
   onDelete,
 }: {
-  kr: Doc<"keyResults"> & { health: HealthStatus };
+  kr: Doc<"keyResults"> & { health: HealthStatus; resolvedResponsibles?: { _id: string; name: string }[] };
   cycleStartDate?: string;
   cycleEndDate?: string;
   canShowPhasing: boolean;
@@ -261,27 +244,37 @@ function KrCard({
 
   return (
     <div className="bg-card rounded-lg border border-border/80 group hover:border-border transition-colors">
-      {/* ─── Title row ─── */}
-      <div className="px-3 pt-3 pb-1.5">
+      {/* ─── Row 1: Title + Avatars + Action ─── */}
+      <div className="px-3 pt-3 pb-2">
         <div className="flex items-start gap-2">
           <div className={`w-1.5 h-1.5 rounded-full shrink-0 mt-[5px] ${healthColor}`} />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium leading-snug text-foreground line-clamp-2">
-              {kr.title}
-            </p>
-            {kr.description && (
-              <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{kr.description}</p>
-            )}
-            <ResponsiblesBadges responsibles={kr.responsibles as string[] | undefined} />
-          </div>
-          <div className="shrink-0 -mt-0.5">
+
+          <p className="text-sm font-medium leading-snug text-foreground flex-1 min-w-0 line-clamp-2">
+            {kr.title}
+          </p>
+
+          <div className="shrink-0 flex items-center gap-1.5 -mt-0.5">
+            <KrResponsibleAvatars responsibles={kr.resolvedResponsibles} />
             <UpdateProgressDialog keyResult={kr} />
           </div>
         </div>
       </div>
 
-      {/* ─── Metrics row ─── */}
+      {/* ─── Row 2: Progress bar + percentage ─── */}
       <div className="px-3 pb-2 flex items-center gap-2">
+        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${kr.hasProgress ? healthColor : progress >= 100 ? "bg-success" : "bg-primary"}`}
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          />
+        </div>
+        <span className="text-xs font-semibold text-foreground tabular-nums shrink-0 w-8 text-right">
+          {progress}%
+        </span>
+      </div>
+
+      {/* ─── Row 3: Metadata (subdued) ─── */}
+      <div className="px-3 pb-2.5 flex items-center gap-2">
         <Badge
           variant="outline"
           className="text-[10px] px-1 py-0 h-4 leading-none font-normal text-muted-foreground shrink-0"
@@ -299,20 +292,6 @@ function KrCard({
             maxTolerableIncidents={(typeConfig as { maxTolerableIncidents?: number }).maxTolerableIncidents ?? 0}
           />
         )}
-        <span className="text-xs font-semibold text-foreground tabular-nums shrink-0">
-          {progress}%
-        </span>
-      </div>
-
-      {/* ─── Progress bar ─── */}
-      <div className="px-3 pb-2.5">
-        <div className="h-1 bg-muted rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${kr.hasProgress ? healthColor : progress >= 100 ? "bg-success" : "bg-primary"
-              }`}
-            style={{ width: `${Math.min(progress, 100)}%` }}
-          />
-        </div>
       </div>
 
       {/* ─── Hover actions bar ─── */}

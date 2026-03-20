@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getKrTypeLabel } from "@/lib/kr-types";
+import { KrResponsibleAvatars } from "./kr-responsible-avatars";
 import { resolveKr, formatResolvedValue } from "@/lib/kr-types/resolve";
 import { StageGateConfigEditor } from "./type-config/stage-gate-config-editor";
 import { ChecklistConfigEditor } from "./type-config/checklist-config-editor";
@@ -37,7 +38,10 @@ import { MultiPhaseConfigEditor } from "./type-config/multi-phase-config-editor"
 import { TypeConfigSection } from "./type-config-section";
 
 interface KeyResultCardProps {
-  keyResult: Doc<"keyResults"> & { health: HealthStatus };
+  keyResult: Doc<"keyResults"> & {
+    health: HealthStatus;
+    resolvedResponsibles?: { _id: string; name: string }[];
+  };
   cycleStartDate?: string;
   cycleEndDate?: string;
   cycleStatus?: string;
@@ -106,6 +110,13 @@ export function KeyResultCard({
                 </Badge>
               )}
             </div>
+            {/* Responsible avatars */}
+            <KrResponsibleAvatars
+              responsibles={kr.resolvedResponsibles}
+              maxVisible={4}
+              showEmptyOnHover={false}
+            />
+
             {kr.description && (
               <p className="text-sm text-muted-foreground line-clamp-2">{kr.description}</p>
             )}

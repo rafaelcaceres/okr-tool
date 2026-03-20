@@ -1,11 +1,11 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api } from "../../../convex/_generated/api";
-import { Doc } from "../../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,7 +34,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { type KrType, getKrTypeLabel, getStrategy } from "@/lib/kr-types";
 
 const directionOptions = [
@@ -73,6 +74,7 @@ const formSchema = z.object({
       (val) => !val || val.trim() === "" || /^https?:\/\/.+/.test(val),
       { message: "O link deve começar com http:// ou https://." }
     ),
+  responsibles: z.array(z.string()),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -84,6 +86,7 @@ interface EditKeyResultDialogProps {
 export function EditKeyResultDialog({ keyResult }: EditKeyResultDialogProps) {
   const [open, setOpen] = useState(false);
   const updateKeyResult = useMutation(api.keyResults.updateKeyResult);
+  const members = useQuery(api.members.getMembers);
 
   const hasProgress = keyResult.hasProgress;
   const krType = resolveKrType(keyResult);
@@ -105,6 +108,7 @@ export function EditKeyResultDialog({ keyResult }: EditKeyResultDialogProps) {
       direction: keyResult.direction ?? "INCREASING",
       currency: keyResult.currency ?? "",
       externalLink: keyResult.externalLink ?? "",
+      responsibles: (keyResult.responsibles ?? []) as string[],
     },
   });
 
@@ -123,6 +127,7 @@ export function EditKeyResultDialog({ keyResult }: EditKeyResultDialogProps) {
         ...(isNumeric && { unit: values.unit }),
         ...(isFinancial && { currency: values.currency }),
         externalLink: values.externalLink || undefined,
+        responsibles: values.responsibles as Id<"members">[],
       });
       toast.success("Key Result atualizado com sucesso");
       setOpen(false);
@@ -284,6 +289,84 @@ export function EditKeyResultDialog({ keyResult }: EditKeyResultDialogProps) {
                 )}
               />
             )}
+
+            <FormField
+              control={form.control}
+              name="responsibles"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Responsáveis{" "}
+                    <span className="text-muted-foreground font-normal">
+                      (opcional)
+                    </span>
+                  </FormLabel>
+                  <div className="space-y-2">
+                    {/* Selected members */}
+                    {field.value.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {field.value.map((id) => {
+                          const member = members?.find((m) => m._id === id);
+                          if (!member) return null;
+                          return (
+                            <Badge
+                              key={id}
+                              variant="secondary"
+                              className="gap-1 pr-1"
+                            >
+                              {member.name}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  field.onChange(
+                                    field.value.filter((v) => v !== id)
+                                  )
+                                }
+                                className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {/* Member selector */}
+                    <Select
+                      onValueChange={(value) => {
+                        if (!field.value.includes(value)) {
+                          field.onChange([...field.value, value]);
+                        }
+                      }}
+                      value=""
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Adicionar responsável..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {members
+                          ?.filter((m) => !field.value.includes(m._id))
+                          .map((m) => (
+                            <SelectItem key={m._id} value={m._id}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                        {members &&
+                          members.filter((m) => !field.value.includes(m._id))
+                            .length === 0 && (
+                            <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                              Todos os membros já foram adicionados
+                            </div>
+                          )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

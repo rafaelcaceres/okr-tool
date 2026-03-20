@@ -7,6 +7,7 @@ import { EditKeyResultDialog } from "./edit-key-result-dialog";
 import { UpdateProgressDialog } from "./update-progress-dialog";
 import { KrStatusBadge } from "./kr-status-badge";
 import { KrDetailView } from "./kr-detail-view";
+import { KrResponsibleAvatars } from "./kr-responsible-avatars";
 import { PhasingEditor } from "../phasing/phasing-editor";
 import { PhasingChart } from "../phasing/phasing-chart";
 import {
@@ -301,26 +302,42 @@ export function KeyResultList({
             key={kr._id}
             className="bg-card rounded-lg border border-border/80 group hover:border-border transition-colors"
           >
-            {/* ─── Header: title row ─── */}
-            <div className="px-3 pt-3 pb-1.5">
+            {/* ─── Row 1: Title + Avatars + Action ─── */}
+            <div className="px-3 pt-3 pb-2">
               <div className="flex items-start gap-2">
-                {/* Status dot */}
                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 mt-[5px] ${healthColor}`} />
 
-                {/* Title */}
                 <p className="text-sm font-medium leading-snug text-foreground flex-1 min-w-0 line-clamp-2">
                   {kr.title}
                 </p>
 
-                {/* Primary: update progress — always visible */}
-                <div className="shrink-0 -mt-0.5">
+                <div className="shrink-0 flex items-center gap-1.5 -mt-0.5">
+                  <KrResponsibleAvatars responsibles={kr.resolvedResponsibles} />
                   <UpdateProgressDialog keyResult={kr} />
                 </div>
               </div>
             </div>
 
-            {/* ─── Metrics row ─── */}
+            {/* ─── Row 2: Progress bar + percentage ─── */}
             <div className="px-3 pb-2 flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${kr.hasProgress
+                    ? healthColor
+                    : progress >= 100
+                      ? "bg-success"
+                      : "bg-primary"
+                    }`}
+                  style={{ width: `${Math.min(progress, 100)}%` }}
+                />
+              </div>
+              <span className="text-xs font-semibold text-foreground tabular-nums shrink-0 w-8 text-right">
+                {progress}%
+              </span>
+            </div>
+
+            {/* ─── Row 3: Metadata (subdued) ─── */}
+            <div className="px-3 pb-2.5 flex items-center gap-2">
               <Badge
                 variant="outline"
                 className="text-[10px] px-1 py-0 h-4 leading-none font-normal text-muted-foreground shrink-0"
@@ -335,25 +352,6 @@ export function KeyResultList({
               <div className="flex-1" />
 
               <KrStatusBadge health={kr.health} />
-
-              <span className="text-xs font-semibold text-foreground tabular-nums shrink-0">
-                {progress}%
-              </span>
-            </div>
-
-            {/* ─── Progress bar ─── */}
-            <div className="px-3 pb-2.5">
-              <div className="h-1 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${kr.hasProgress
-                    ? healthColor
-                    : progress >= 100
-                      ? "bg-success"
-                      : "bg-primary"
-                    }`}
-                  style={{ width: `${Math.min(progress, 100)}%` }}
-                />
-              </div>
             </div>
 
             {/* ─── Hover actions bar ─── */}
@@ -449,7 +447,6 @@ export function KeyResultList({
 
             {/* ─── Collapsible type detail ─── */}
             <div className="px-3 pb-2">
-              {/* Checklist gets its own collapsible; stages/workstreams are shown via PhasingChart */}
               {hasChecklist && (
                 <CollapsibleTypeDetail
                   kr={kr}
@@ -460,7 +457,6 @@ export function KeyResultList({
                 />
               )}
 
-              {/* Phasing chart (also renders timeline view for stages/workstreams) */}
               {supportsPhasing && (
                 <CollapsibleChart
                   keyResult={kr}

@@ -96,9 +96,20 @@ async function getKrWithHealth(ctx: QueryCtx, kr: Doc<"keyResults">, currentDate
     .withIndex("by_keyResult", (q) => q.eq("keyResultId", kr._id))
     .collect();
 
+  // Resolve responsible members
+  const resolvedResponsibles = kr.responsibles
+    ? await Promise.all(
+        kr.responsibles.map(async (memberId) => {
+          const member = await ctx.db.get(memberId);
+          return member ? { _id: member._id, name: member.name } : null;
+        })
+      ).then((results) => results.filter(Boolean) as { _id: string; name: string }[])
+    : [];
+
   return {
     ...kr,
     health: computeKrHealth(kr, phasingEntries, currentDate),
+    resolvedResponsibles,
   };
 }
 
