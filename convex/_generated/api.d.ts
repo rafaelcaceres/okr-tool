@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
 import type * as comments from "../comments.js";
 import type * as cycles from "../cycles.js";
 import type * as franchises from "../franchises.js";
@@ -21,6 +22,7 @@ import type * as objectives from "../objectives.js";
 import type * as phasing from "../phasing.js";
 import type * as progressEntries from "../progressEntries.js";
 import type * as reports from "../reports.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -29,6 +31,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   comments: typeof comments;
   cycles: typeof cycles;
   franchises: typeof franchises;
@@ -42,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   phasing: typeof phasing;
   progressEntries: typeof progressEntries;
   reports: typeof reports;
+  users: typeof users;
 }>;
 
 /**

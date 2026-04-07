@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ModeToggle } from "@/components/mode-toggle";
+import { AuthGuard } from "@/components/auth-guard";
+import { UserMenu } from "@/components/user-menu";
 import { PenLine, TrendingUp, BarChart3 } from "lucide-react";
 
 const navItems = [
@@ -31,6 +33,7 @@ export default function AreasLayout({ children }: { children: ReactNode }) {
   const isRelatorios = pathname.startsWith("/relatorios");
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-gray-50 dark:bg-background">
       <header className="bg-white dark:bg-card border-b border-gray-200 dark:border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
@@ -60,7 +63,10 @@ export default function AreasLayout({ children }: { children: ReactNode }) {
               })}
             </nav>
           </div>
-          <ModeToggle />
+          <div className="flex items-center gap-2">
+            <ModeToggle />
+            <UserMenu />
+          </div>
         </div>
         {(isPlanejamento || isRelatorios) && (
           <div className="border-t border-gray-100 dark:border-border/50">
@@ -96,5 +102,6 @@ export default function AreasLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
     </div>
+    </AuthGuard>
   );
 }
